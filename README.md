@@ -260,7 +260,7 @@ kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manif
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/metallb.yaml
 ```
 Now `vi metallb_config.yaml` to see the addressing, services will have 192.168.33.21-192.168.33.41 . <br>
-[metallb_config.yml](reference/metallb_config.yaml) <br>
+[metallb_config.yml](reference/metallb_config.yml) <br>
 Apply it: `kubectl apply -f metallb_config.yml` , wait and monitor until pods are up : <br>
 ```
 NAMESPACE                   NAME                                        READY   STATUS    RESTARTS   AGE
