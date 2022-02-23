@@ -1,0 +1,51 @@
+---
+- name: Rollout change
+  hosts: all
+  remote_user: root
+
+  tasks:
+    - name: Copy sshd config for insecure rsa
+      ansible.builtin.copy:
+        src: 10-insecure-rsa-keysig.conf
+        dest: /etc/ssh/sshd_config.d/10-insecure-rsa-keysig.conf
+        owner: root
+        group: root
+        mode: '0640'
+    - name: Copy calico.conf
+      ansible.builtin.copy:
+        src: calico.conf
+        dest: /etc/NetworkManager/conf.d/calico.conf
+        owner: root
+        group: root
+        mode: '0640'
+    - name: Reload service sshd, in all cases
+      ansible.builtin.service:
+        name: sshd
+        state: reloaded
+    - name: Disable firewalld
+      ansible.builtin.systemd:
+        name: firewalld 
+        enabled: no
+    - name: Copy dns-none
+      ansible.builtin.copy:
+        src: 90-dns-none.conf
+        dest: /etc/NetworkManager/conf.d/90-dns-none.conf
+        owner: root
+        group: root
+        mode: '0640'
+    - name: Reload NM
+      ansible.builtin.service:
+        name: NetworkManager
+        state: reloaded
+    - name: Copy resolv
+      ansible.builtin.copy:
+        src: resolv.conf
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: '0640'
+    - name: Disable resolvd
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        enabled: no
+

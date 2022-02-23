@@ -1,0 +1,16 @@
+target/
+.settings/
+.project
+.classpath
+.tern-project
+*rebel*.xml
+nb-configuration.xml
+*/rebel-remote.xml
+
+
+# IntelliJ
+.idea/
+*.iws
+*.ipr
+*.iml
+atlassian-ide-plugin.xml
