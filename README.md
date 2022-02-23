@@ -79,21 +79,24 @@ because it has some quirks. That is why I collected few commands to fire on vm1,
 Generally for Fedora you have to turn off firewalld, systemd-resolved, instruct the NetworkManager to not manage Calico network interfaces,
 Also upload some additional SSHd config, use static DNS config at resolv.conf . <br>
 <br>
-We will use Calico as network provided inside k3s (because the built-in trafeik etc didnt work for CertManager later)
+We will use Calico as network provided inside k3s (because the built-in traefik etc didnt work for CertManager later)
 Calico needs special treat for Fedora like distros. Link: https://projectcalico.docs.tigera.io/maintenance/troubleshoot/troubleshooting#configure-networkmanager
 <br>
-Reconfigure the vm1,vm2,vm3 with ansible : `ansible-playbook -i inventory playbook-01.yml` <br>
+Reconfigure the vm1,vm2,vm3 with ansible (inventory is a host list, playbook is a ansible script) :<br>
+`cd reference` <br>
+`ansible-playbook -i inventory playbook-01.yml` <br>
 You should see success at the end, no errors. If ansible not there on the host, you have to install if of course first.
 <br><br>
 Virtual machines should be now ready for K3S installation
 
 ### K3S 
-Why k3s-version = v1.21.1+k3s1 ? Because by time of this exercise Rancher 2.6.3 would not start of newer k3s
+Why k3s-version = **v1.21.1+k3s1** ? Because by time of this exercise Rancher 2.6.3 would not start of newer k3s
 like 1.22.x . Realized that painfully after full k3s installation and the Rachner said it wont start on incompatible cluster.<br>
 Here is Rancher compatibility matrix: https://www.suse.com/suse-rancher/support-matrix/all-supported-versions/rancher-v2-6-3/
 ![](screenshots/rancher_compat.png)
 
 #### Install K3Sup
+k3sup is a script which automatis k3s installation:<br>
 link: https://github.com/alexellis/k3sup#download-k3sup-tldr
 
 #### Fire first node(vm1) k3s 
@@ -128,7 +131,7 @@ Should print like
 NAME   STATUS   ROLES                       AGE     VERSION        INTERNAL-IP     EXTERNAL-IP   OS-IMAGE                           KERNEL-VERSION           CONTAINER-RUNTIME
 vm1    Ready    control-plane,etcd,master   3h39m   v1.21.1+k3s1   192.168.33.11   <none>        Fedora Linux 35 (Server Edition)   5.16.9-200.fc35.x86_64   containerd://1.4.4-k3s2
 ```
-We good now, if you fire like `kubectl get pods -A` you will see they are not up, because network not there yet.
+We good now, if you fire the `kubectl get pods -A` you will see they are not up, because network not there yet.
 
 #### Give network using Calico
 
@@ -156,18 +159,18 @@ Apply rules first: `kubectl apply -f https://kube-vip.io/manifests/rbac.yaml`
 
 Now SSH to the vm1 node `ssh vm1` , now there execute commands (inside vm1 !!!):
 - check what is internal network interface id with `ifconfig`, mine is **enp0s3**:
-```
-enp0s3: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
-        inet 192.168.33.11  netmask 255.255.255.0  broadcast 192.168.33.255
-```
+    ```
+    enp0s3: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+            inet 192.168.33.11  netmask 255.255.255.0  broadcast 192.168.33.255
+    ```
 - few commands, watch out IP and nic: **enp0s3**:
-```
-ctr image pull docker.io/plndr/kube-vip:v0.4.2
-alias kube-vip="ctr run --rm --net-host docker.io/plndr/kube-vip:v0.4.2 vip /kube-vip"
-export VIP=192.168.33.20
-export INTERFACE=enp0s3
-kube-vip manifest daemonset --arp --interface $INTERFACE --address $VIP --controlplane --leaderElection --taint --inCluster | tee /var/lib/rancher/k3s/server/manifests/kube-vip.yaml
-```
+    ```
+    ctr image pull docker.io/plndr/kube-vip:v0.4.2
+    alias kube-vip="ctr run --rm --net-host docker.io/plndr/kube-vip:v0.4.2 vip /kube-vip"
+    export VIP=192.168.33.20
+    export INTERFACE=enp0s3
+    kube-vip manifest daemonset --arp --interface $INTERFACE --address $VIP --controlplane --leaderElection --taint --inCluster | tee /var/lib/rancher/k3s/server/manifests/kube-vip.yaml
+    ```
 ctr is pulling image. VIP is the desired cluster virtual ip, INTERFACE is the interface from ifconfig.<br>
 CTRL+D. Exit from vm1 to the jump host. <br>
 Allow 2-3 mins, check with  `kubectl get pods -A` if kube-vip is UP, should see:
@@ -187,6 +190,8 @@ PING 192.168.33.20 (192.168.33.20) 56(84) bytes of data.
 3 packets transmitted, 3 received, 0% packet loss, time 2051ms
 rtt min/avg/max/mdev = 0.420/0.446/0.487/0.029 ms
 ```
+You can change in `vi ~/.kube/config` the IP address from the first node to cluster IP.
+
 Perfect then. Let's progress with some verification
 
 #### DNS verification
