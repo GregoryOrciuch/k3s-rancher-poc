@@ -1,4 +1,4 @@
-# GregoryOrciuch-k3s-rancher-poc guide
+# k3s-rancher-poc guide
 K3S + Rancher on VirtualBox machines
 
 ## Planning & Preface:
