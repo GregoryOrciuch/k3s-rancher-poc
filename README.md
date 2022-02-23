@@ -96,7 +96,7 @@ Here is Rancher compatibility matrix: https://www.suse.com/suse-rancher/support-
 ![](screenshots/rancher_compat.png)
 
 #### Install K3Sup
-k3sup is a script which automatis k3s installation:<br>
+k3sup is a script which automate k3s installation:<br>
 link: https://github.com/alexellis/k3sup#download-k3sup-tldr
 
 #### Fire first node(vm1) k3s 
